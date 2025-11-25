@@ -3,7 +3,13 @@ import { cn } from "@/lib/utils";
 import { ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 
+
+export const metadata: Metadata = {
+  title: "CodeStudio by CodeSwift",
+  description: "Intelligent Development Environment",
+};
 
 export default function Home() {
   return (
@@ -18,10 +24,7 @@ export default function Home() {
      
 
       <p className="mt-2 text-lg text-center text-gray-600 dark:text-gray-400 px-5 py-10 max-w-2xl">
-        CodeStudio by CodeSwift is a powerful and intelligent code editor that enhances
-        your coding experience with advanced features and seamless integration.
-        It is designed to help you write, debug, and optimize your code
-        efficiently.
+        CodeStudio by CodeSwift is an intelligent code editor designed to enhance your productivity with advanced features, seamless integration, and powerful debugging tools.
       </p>
       <Link href={"/dashboard"}>
         <Button variant={"brand"} className="mb-4 cursor-pointer" size={"lg"}>
