@@ -18,7 +18,7 @@ export default function Home() {
       <Image src={"/hero.svg"} alt="Hero-Section" height={500}  width={500}/>
       
       <h1 className=" z-20 text-6xl mt-5 font-extrabold text-center bg-clip-text text-transparent bg-gradient-to-r from-rose-500 via-red-500 to-pink-500 dark:from-rose-400 dark:via-red-400 dark:to-pink-400 tracking-tight leading-[1.3] ">
-        Code with Intelligence
+        Where Intelligence Meets Code
       </h1>
       </div>
      
@@ -28,7 +28,7 @@ export default function Home() {
       </p>
       <Link href={"/dashboard"}>
         <Button variant={"brand"} className="mb-4 cursor-pointer" size={"lg"}>
-          Get Started
+          Code Playground
           <ArrowUpRight className="w-3.5 h-3.5" />
         </Button>
       </Link>
