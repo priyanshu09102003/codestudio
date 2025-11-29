@@ -32,7 +32,7 @@ const NavigateButton = () => {
                 </h1>
 
                 <p className="text-sm text-muted-foreground max-w-[220px]">
-                    Build with prompts
+                    Write code with prompts, perfect it with a click
                 </p>
                 
 
