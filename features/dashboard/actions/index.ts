@@ -9,7 +9,6 @@ export const createPlayground = async(data: {
     title: string;
     template: Templates;
     description?: string;
-    userId: string
 })=>{
     const {template, title, description} = data;
     const user = await currentUser();
@@ -29,6 +28,7 @@ export const createPlayground = async(data: {
 
     } catch (error) {
         console.log(error)
+        return null;
     }
 }
 
@@ -59,7 +59,6 @@ export const getAllPlaygrounds = async()=>{
     } catch (error) {
 
         console.error(error);
-        return null;
         
     }
 }

@@ -111,7 +111,7 @@ export default function ProjectTable({projects, onDeleteProject, onUpdateProject
     return (
         <>
 
-            <div className='border rounded-lg overflow-hidden'>
+            <div className='border rounded-lg overflow-hidden w-full'>
 
                 <Table>
                     <TableHeader>
@@ -158,7 +158,7 @@ export default function ProjectTable({projects, onDeleteProject, onUpdateProject
                                     <div className="flex items-center gap-2">
                                         <div className="w-8 h-8 rounded-full overflow-hidden">
                                         <Image
-                                            src={project.user.image || "/placeholder.svg"}
+                                            src={project.user.image || "/user.svg"}
                                             alt={project.user.name}
                                             width={32}
                                             height={32}

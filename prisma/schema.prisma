@@ -48,7 +48,7 @@ model Account {
 }
 
 enum Templates{
-  REACTJS
+  REACT
   NEXTJS
   EXPRESS
   VUE
@@ -60,7 +60,7 @@ model Playground{
   id String @id @default(cuid()) @map("_id")
   title String
   description String?
-  template Templates @default(REACTJS)
+  template Templates @default(REACT)
   Starmark StarMark[]
   userId String
   user User @relation(fields: [userId], references: [id] , onDelete: Cascade)

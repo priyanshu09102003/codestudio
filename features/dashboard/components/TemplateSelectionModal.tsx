@@ -134,6 +134,21 @@ const templates: TemplateOption[] = [
   },
 ];
 
+const getSetupTime = (templateId: string | null): string => {
+  if (!templateId) return "Select a template";
+  
+  const setupTimes: Record<string, string> = {
+    react: "2-3 minutes",
+    nextjs: "3-5 minutes",
+    express: "1-2 minutes",
+    vue: "2-4 minutes",
+    hono: "1-3 minutes",
+    angular: "4-6 minutes"
+  };
+  
+  return setupTimes[templateId] || "2-5 minutes";
+};
+
 
 const TemplateSelectionModal = ({isOpen, onClose, onSubmit}:TemplateSelectionModalProps) => {
 
@@ -167,6 +182,41 @@ const TemplateSelectionModal = ({isOpen, onClose, onSubmit}:TemplateSelectionMod
             i < count ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
           }/>
         ))
+    }
+
+    const handleContinue = () => {
+      if(selectedTemplate){
+        setStep("configure")
+      }
+    }
+
+    const handleBack = () => {
+      setStep("select")
+    }
+
+    const handleCreateProject = () => {
+      if(selectedTemplate){
+        const templateMap:Record<string,  "REACT" | "NEXTJS" | "EXPRESS" | "VUE" | "HONO" | "ANGULAR"> = {
+          react: "REACT",
+          nextjs: "NEXTJS",
+          express: "EXPRESS",
+          vue: "VUE",
+          hono: "HONO",
+          angular: "ANGULAR",
+        }
+
+        const template = templates.find((t) => t.id === selectedTemplate);
+        onSubmit({
+          title: projectName || `New ${template?.name} Project`,
+          template: templateMap[selectedTemplate] || "REACT",
+          description: template?.description
+        })
+      }
+
+      onClose();
+      setStep("select");
+      setSelectedTemplate(null);
+      setProjectName("");
     }
 
 
@@ -339,6 +389,34 @@ const TemplateSelectionModal = ({isOpen, onClose, onSubmit}:TemplateSelectionMod
 
                             </RadioGroup>
 
+                            <div className="flex justify-between gap-3 mt-4 pt-4 border-t">
+                              <div className="flex items-center text-sm text-muted-foreground">
+
+                                    <Clock size={14} className="mr-1" />
+
+                                    <span>
+                                      Estimated setup time: {" "}
+                                       {selectedTemplate ? getSetupTime(selectedTemplate) : "Select a template"}
+                                    </span>
+                                  
+
+                              </div>
+
+
+                              <div className="flex gap-3">
+                                <Button className="cursor-pointer" variant={"outline"} onClick={onClose}>
+                                  Cancel
+                                </Button>
+
+                                <Button className="cursor-pointer bg-[#e93f3f] hover:bg-[#d03636] text-white" onClick={handleContinue}>
+                                  Continue
+                                  <ChevronRight size={16} className="ml-1" />
+                                </Button>
+
+                              </div>
+
+                            </div>
+
                         </div>
 
                     
@@ -346,7 +424,55 @@ const TemplateSelectionModal = ({isOpen, onClose, onSubmit}:TemplateSelectionMod
 
                 ) : (
                     <>
-                    
+                      <DialogHeader>
+                        <DialogTitle className="text-2xl font-bold text-[#e93f3f]">
+                          Configure your Project
+                        </DialogTitle>
+
+                        <DialogDescription>
+                          {templates.find((t) => t.id === selectedTemplate)?.name} Project Configuration
+                        </DialogDescription>
+                      </DialogHeader>
+
+                      <div className="flex flex-col gap-6 py-4">
+                        <div className="flex flex-col gap-2">
+                          <Label htmlFor="project-name">Project Name</Label>
+                          <Input
+                          id="project-name"
+                          placeholder="Eg: My-app"
+                          value={projectName}
+                          onChange={(e)=>setProjectName(e.target.value)}
+                          />
+                        </div>
+                           <div className="p-4 shadow-[0_0_0_1px_#E93F3F,0_8px_20px_rgba(233,63,63,0.15)] rounded-lg border">
+                              <h3 className="font-medium mb-2">Template Features</h3>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {templates
+                                  .find((t) => t.id === selectedTemplate)
+                                  ?.features.map((feature) => (
+                                    <div key={feature} className="flex items-center gap-2">
+                                      <Zap size={14} className="text-[#E93F3F]" />
+                                      <span className="text-sm">{feature}</span>
+                                    </div>
+                                  ))}
+                              </div>
+                            </div>
+
+                            <div className="flex justify-between gap-3 mt-4 pt-4 border-t">
+
+                                <Button variant="outline" onClick={handleBack} className="cursor-pointer">
+                                  Back
+                                </Button>
+                                <Button
+                                  className="bg-[#E93F3F] hover:bg-[#d03636] text-white cursor-pointer"
+                                  onClick={handleCreateProject}
+                                >
+                                  Create Project
+                                </Button>
+                            </div>
+
+
+                      </div>
                     </>
 
                 )
