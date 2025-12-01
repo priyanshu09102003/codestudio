@@ -18,8 +18,11 @@ import { Code2, Compass, Database, FlameIcon, Home, Lightbulb, LucideIcon, Plus,
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import React, { useState } from 'react'
+import TemplateSelectionModal from './TemplateSelectionModal';
+import { createPlayground } from '../actions';
+import { toast } from 'sonner';
 
 
 interface PlaygroundDataProps{
@@ -42,13 +45,30 @@ const lucideIconMap:Record<string, LucideIcon>={
 const DashboardSidebar = ({initialPlaygroundData}:{initialPlaygroundData:PlaygroundDataProps[]}) => {
 
     const pathname = usePathname();
+    const router = useRouter();
     const[starredPlaygrounds, setStarredPlaygrounds] = useState(initialPlaygroundData.filter((p)=> p.starred))
 
-    const [recentPlaygrounds, setRecentPlaygrounds] = useState(initialPlaygroundData);
+    const [recentPlaygrounds, setRecentPlaygrounds] = useState(
+        initialPlaygroundData.slice(0, 5)
+    );
 
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleSubmit = async(data: {
+      title: string;
+      template: "REACT" | "NEXTJS" | "EXPRESS" | "VUE" | "HONO" | "ANGULAR";
+      description?:string;
+    }) => {
+      const res = await createPlayground(data);
+      toast.success("Playground created successfully!")
+  
+      setIsModalOpen(false);
+      router.push(`/playground/${res?.id}`)
+    }
 
     
   return (
+    <>
     <Sidebar variant='inset' collapsible='icon' className='border border-r'>
 
 
@@ -94,7 +114,7 @@ const DashboardSidebar = ({initialPlaygroundData}:{initialPlaygroundData:Playgro
               Starred Playgrounds
           </SidebarGroupLabel>
 
-          <SidebarGroupAction title='Add starred Playground'>
+          <SidebarGroupAction title='Add starred Playground' onClick={() => setIsModalOpen(true)}>
               <Plus className='size-4' />
           </SidebarGroupAction>
 
@@ -134,7 +154,7 @@ const DashboardSidebar = ({initialPlaygroundData}:{initialPlaygroundData:Playgro
             <History className="h-4 w-4 mr-2" />
             Recent Projects
           </SidebarGroupLabel>
-          <SidebarGroupAction title="Create new playground">
+          <SidebarGroupAction title="Create new playground" onClick={() => setIsModalOpen(true)}>
             <FolderPlus className="h-4 w-4" />
           </SidebarGroupAction>
           <SidebarGroupContent>
@@ -189,6 +209,13 @@ const DashboardSidebar = ({initialPlaygroundData}:{initialPlaygroundData:Playgro
 
       <SidebarRail/>
     </Sidebar>
+
+    <TemplateSelectionModal 
+      isOpen = {isModalOpen}
+      onClose = {() => setIsModalOpen(false)}
+      onSubmit = {handleSubmit}
+    />
+    </>
   )
 }
 
