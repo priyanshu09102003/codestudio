@@ -3,6 +3,7 @@
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import TemplateFileTree from '@/features/playground/components/TemplateFileTree';
 import { usePlayground } from '@/features/playground/hooks/usePlayground';
 import { useParams } from 'next/navigation';
 import React from 'react'
@@ -19,7 +20,12 @@ const PlaygroundPage = () => {
   return (
     <div>
       <>
-        {/* TODO: TEMPLATE FILE TREE  */}
+        {/* TEMPLATE FILE TREE  */}
+
+          <TemplateFileTree
+          data={templateData!}
+          />
+
 
 
         <SidebarInset>
