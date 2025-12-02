@@ -85,6 +85,9 @@ export const editProjectById = async(id:string, data:{title:string, description:
             data:data
         })
 
+        revalidatePath("/dashboard");
+
+
     } catch (error) {
 
         console.error(error)
@@ -113,6 +116,7 @@ export const duplicateProjectById = async(id:string)=>{
 
         
         revalidatePath("/dashboard");
+
 
         return duplicatedPlayground;
 

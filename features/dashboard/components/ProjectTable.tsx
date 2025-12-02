@@ -88,24 +88,84 @@ export default function ProjectTable({projects, onDeleteProject, onUpdateProject
         setIsLoading(true);
 
         try {
+
+            await onDuplicateProject(project.id);
+            toast.success("Project duplicated successfully!")
             
         } catch (error) {
+            toast.error("Failed to duplicate project")
+            console.error(error)
             
+        }
+        finally{
+            setIsLoading(false)
         }
     }
 
 
     const handleEditClick = async(project: Project) => {
+        setSelectedProject(project);
+        setEditData({
+            title: project.title,
+            description: project.description || ""
+        })
 
+        setEditDialogOpen(true)
     }
 
     
     const handleDeleteClick = async(project: Project) => {
 
+        setSelectedProject(project);
+        setDeleteDialogOpen(true)
+
+    }
+
+    const handleDeleteProject = async () => {
+        if(!selectedProject || !onDeleteProject) return;
+
+        setIsLoading(true);
+
+        try {
+
+            await onDeleteProject(selectedProject.id);
+            setDeleteDialogOpen(false)
+            setSelectedProject(null)
+            toast.success("Project deleted successfully !")
+            
+        } catch (error) {
+            toast.error("Failed to delete project")
+            console.error("Failed to delete project: " , error);
+
+        } finally{
+            setIsLoading(false)
+        }
+    }
+
+    const handleUpdateProject = async() => {
+        if(!selectedProject || !onUpdateProject) return;
+
+        setIsLoading(true);
+
+        try {
+            await onUpdateProject(selectedProject.id, editData)
+            setEditDialogOpen(false);
+            setSelectedProject(null);
+            toast.success("Project updated successfully !")
+
+        } catch (error) {
+            toast.error("Failed to update your project")
+            console.error("Error updating project: ", error)
+        }
+        finally{
+            setIsLoading(false)
+        }
     }
 
     const copyProjectUrl = async(projectId: string) => {
-
+        const url = `${window.location.origin}/playground/${projectId}`;
+        navigator.clipboard.writeText(url);
+        toast.success("Project url copied to clipboard")
     }
 
     return (
@@ -136,6 +196,10 @@ export default function ProjectTable({projects, onDeleteProject, onUpdateProject
                                                 {project.title}
                                             </span>
                                         </Link>
+
+                                        <span className='text-sm text-gray-500 line-clamp-1'>
+                                            {project.description}
+                                        </span>
 
                                     </div>
                                 </TableCell>
@@ -241,6 +305,111 @@ export default function ProjectTable({projects, onDeleteProject, onUpdateProject
                 </Table>
 
             </div>
+            
+            {/* EDIT PROJECT */}
+
+            <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+
+                <DialogContent className='sm:max-w-[425px]'>
+
+                    <DialogHeader>
+                        <DialogTitle>Edit Project</DialogTitle>
+                        <DialogDescription>
+                            Make changes to your project details here. Click on Save when you're done.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className='grid gap-4 py-4'>
+
+                        {/* EDIT TITLE */}
+                        <div className='grid gap-2'>
+
+                            <Label htmlFor='title'>
+                                Project title
+                            </Label>
+
+                            <Input
+                            id='title'
+                            value={editData.title}
+                            onChange={(e) => setEditData((prev) => ({
+                                ...prev, title:e.target.value
+                            }))}
+                            placeholder='Enter your Project Title...'
+                            />
+
+                        </div>
+
+
+                        {/* EDIT DESCRIPTION */}
+                         <div className='grid gap-2'>
+
+                            <Label htmlFor='description'>
+                                Description
+                            </Label>
+
+                            <Textarea
+                            id='description'
+                            value={editData.description}
+                            onChange={(e) => setEditData((prev) => ({
+                                ...prev, description:e.target.value
+                            }))}
+                            placeholder='Enter your Project Description...'
+                            rows={3}
+                            />
+
+                        </div>
+
+
+
+                    </div>
+
+                    <DialogFooter>
+                        <Button type='button' variant={"outline"} onClick={()=>setEditDialogOpen(false)} disabled={isLoading} className='cursor-pointer'>Cancel</Button>
+
+                        <Button type='button' variant={"brand"} onClick={handleUpdateProject} className='cursor-pointer' disabled={isLoading}>
+                            {
+                                isLoading ? "Saving..." : "Save Changes"
+                            }
+                        </Button>
+                    </DialogFooter>
+
+
+
+                </DialogContent>
+
+
+            </Dialog>
+
+
+            {/* DELETE PROJECT */}
+
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+
+                <AlertDialogContent>
+                     <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Project</AlertDialogTitle>
+                        <AlertDialogDescription>
+                        Are you sure you want to delete <span className='font-bold text-white'> "{selectedProject?.title}" </span>
+                        ? 
+                        This action cannot be undone. All files and data associated with this
+                        project will be permanently removed.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+
+                    <AlertDialogFooter>
+                         <AlertDialogCancel disabled={isLoading} className='cursor-pointer'>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                            onClick={handleDeleteProject}
+                            disabled={isLoading}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 cursor-pointer"
+                            >
+                                {isLoading ? "Deleting..." : "Delete Project"}
+                            </AlertDialogAction>
+                        
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+
+            </AlertDialog>
         
         
         </>
