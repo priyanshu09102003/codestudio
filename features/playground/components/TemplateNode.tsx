@@ -171,7 +171,61 @@ const TemplateNode = ({
                             </SidebarMenuButton>
                         </CollapsibleTrigger>
 
+                        
+                        <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                            <MoreHorizontal className="h-3 w-3" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => {}}>
+                            <FilePlus className="h-4 w-4 mr-2" />
+                            New File
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => {}}>
+                            <FolderPlus className="h-4 w-4 mr-2" />
+                            New Folder
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => {}}>
+                            <Edit3 className="h-4 w-4 mr-2" />
+                            Rename
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => {}} className="text-destructive">
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                        </DropdownMenu>
+
                     </div>
+
+                            <CollapsibleContent>
+                                <SidebarMenuSub>
+                                {folder.items.map((childItem, index) => (
+                                    <TemplateNode
+                                    key={index}
+                                    item={childItem}
+                                    onFileSelect={onFileSelect}
+                                    selectedFile={selectedFile}
+                                    level={level + 1}
+                                    path={currentPath}
+                                    onAddFile={onAddFile}
+                                    onAddFolder={onAddFolder}
+                                    onDeleteFile={onDeleteFile}
+                                    onDeleteFolder={onDeleteFolder}
+                                    onRenameFile={onRenameFile}
+                                    onRenameFolder={onRenameFolder}
+                                    />
+                                ))}
+                                </SidebarMenuSub>
+                            </CollapsibleContent>
                 
                 </Collapsible>
             </SidebarMenuItem>

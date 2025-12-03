@@ -123,7 +123,7 @@ const TemplateFileTree = ({
 
 
                 <SidebarGroupContent>
-                    <Sidebar>
+                    <SidebarMenu>
                         {
                             isRootFolder ? (
                                 (data as TemplateFolder).items.map((child, index) => (
@@ -159,7 +159,7 @@ const TemplateFileTree = ({
                                 />
                             )
                         }
-                    </Sidebar>
+                    </SidebarMenu>
                 </SidebarGroupContent>
             </SidebarGroup>
         </SidebarContent>
