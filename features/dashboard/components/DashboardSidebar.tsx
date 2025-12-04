@@ -49,7 +49,7 @@ const DashboardSidebar = ({initialPlaygroundData}:{initialPlaygroundData:Playgro
     const[starredPlaygrounds, setStarredPlaygrounds] = useState(initialPlaygroundData.filter((p)=> p.starred))
 
     const [recentPlaygrounds, setRecentPlaygrounds] = useState(
-        initialPlaygroundData.slice(0, 5)
+        initialPlaygroundData
     );
 
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -178,13 +178,6 @@ const DashboardSidebar = ({initialPlaygroundData}:{initialPlaygroundData:Playgro
                   );
                 })
               )}
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="View all">
-                  <Link href="/playgrounds">
-                    <span className="text-sm text-muted-foreground">View all Playgrounds</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
 

@@ -1,10 +1,12 @@
 "use client";
-import { TemplateFolder } from '@/features/playground/lib/path-to-json';
+
 import { WebContainer } from '@webcontainer/api';
 import React, {useEffect, useState, useRef} from 'react'
 import { transformToWebContainerFormat } from '../hooks/transformer';
 import { CheckCircle, Loader2, XCircle } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import TerminalComponent from './Terminal';
+import { TemplateFolder } from '@/features/playground/types';
 
 
 interface webContainerPreviewProps{
@@ -41,6 +43,8 @@ const WebContainerPreview = ({
     const [isSetupComplete, setIsSetupComplete] = useState(false);
     const [isSetupInProgress, setIsSetupInProgress] = useState(false);
 
+    const terminalRef = useRef<any>(null)
+
     useEffect(()=> {
         if(forceResetUp){
             setIsSetupComplete(false);
@@ -71,12 +75,18 @@ const WebContainerPreview = ({
                     const packageJsonExists = await instance.fs.readFile("package.json" , "utf8")
                     if(packageJsonExists){
                         //Implement terminal
+                        if(terminalRef.current?.writeToTerminal){
+                            terminalRef.current.writeToTerminal("🔄 Reconnecting to existing WebContainer session...\r\n");
+                        }
                     }
 
                     instance.on("server-ready" , (port:number, url:string) => {
                         console.log(`Reconnected to server on port ${port} at ${url}`)
 
                         //Terminal Implementation
+                        if (terminalRef.current?.writeToTerminal) {
+                            terminalRef.current.writeToTerminal(`🌐 Reconnected to server at ${url}\r\n`);
+                        }
 
 
 
@@ -104,6 +114,10 @@ const WebContainerPreview = ({
 
                 //Terminal Implementation
 
+                if (terminalRef.current?.writeToTerminal) {
+                terminalRef.current.writeToTerminal("🔄 Transforming template data...\r\n");
+                }
+
 
                 //@ts-ignore
                 const files = transformToWebContainerFormat(templateData);
@@ -119,6 +133,10 @@ const WebContainerPreview = ({
 
                 //Terminal Related
 
+                if (terminalRef.current?.writeToTerminal) {
+                terminalRef.current.writeToTerminal("📁 Mounting files to WebContainer...\r\n");
+                }
+
 
 
                 await instance.mount(files)
@@ -132,6 +150,10 @@ const WebContainerPreview = ({
 
                 setCurrentStep(3);
 
+                 if (terminalRef.current?.writeToTerminal) {
+                terminalRef.current.writeToTerminal("📦 Installing dependencies...\r\n");
+                }
+
                 const installProcess = await instance.spawn("npm", ["install"]);
 
                 installProcess.output.pipeTo(
@@ -139,6 +161,9 @@ const WebContainerPreview = ({
                         write(data) {
                         // Write directly to terminal
 
+                         if (terminalRef.current?.writeToTerminal) {
+                            terminalRef.current.writeToTerminal(data);
+                        }
                         },
                     })
                 );
@@ -148,6 +173,9 @@ const WebContainerPreview = ({
                 throw new Error(`Failed to install dependencies. Exit code: ${installExitCode}`);
                 }
 
+                if (terminalRef.current?.writeToTerminal) {
+                terminalRef.current.writeToTerminal("✅ Dependencies installed successfully\r\n");
+                }
 
                 setLoadingState((prev) => ({
                 ...prev,
@@ -162,8 +190,12 @@ const WebContainerPreview = ({
                 // Listen for server ready event
                 instance.on("server-ready", (port: number, url: string) => {
                 console.log(`Server ready on port ${port} at ${url}`);
+                if (terminalRef.current?.writeToTerminal) {
+                    terminalRef.current.writeToTerminal(`🌐 Server ready at ${url}\r\n`);
+                }
 
                     //Terminal Related
+
                
                 setPreviewUrl(url);
                 setLoadingState((prev) => ({
@@ -179,6 +211,9 @@ const WebContainerPreview = ({
                 new WritableStream({
                     write(data) {
                         //Terminal related
+                        if (terminalRef.current?.writeToTerminal) {
+                            terminalRef.current.writeToTerminal(data);
+                        }
                     },
                 })
                 );
@@ -186,7 +221,11 @@ const WebContainerPreview = ({
             } catch (err) {
                 console.error("Error setting up container:", err);
                 const errorMessage = err instanceof Error ? err.message : String(err);
+                  if (terminalRef.current?.writeToTerminal) {
+                terminalRef.current.writeToTerminal(`❌ Error: ${errorMessage}\r\n`);
+                }
                 
+
                 setSetupError(errorMessage);
                 setIsSetupInProgress(false);
                 setLoadingState({
@@ -306,7 +345,12 @@ const WebContainerPreview = ({
 
                         <div className='flex-1 p-4'>
 
-                            <h1>Terminal</h1>
+                            <TerminalComponent 
+                            ref={terminalRef}
+                            webContainerInstance={instance}
+                            theme='dark'
+                            className='h-full'
+                            />
 
                         </div>
 
@@ -325,7 +369,12 @@ const WebContainerPreview = ({
 
                         <div className='h-64 border-t'>
 
-                            <h1>Terminal Component</h1>
+                            <TerminalComponent 
+                            ref={terminalRef}
+                            webContainerInstance={instance}
+                            theme='dark'
+                            className='h-full'
+                            />
 
                         </div>
                     </div>
