@@ -1,12 +1,11 @@
 "use client";
 
-
 import React, { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from "react";
-import {Terminal} from "xterm";
-import { FitAddon } from "xterm-addon-fit";
-import { WebLinksAddon } from "xterm-addon-web-links";
-import { SearchAddon } from "xterm-addon-search";
-import "xterm/css/xterm.css";
+import { Terminal } from "@xterm/xterm";
+import { FitAddon } from "@xterm/addon-fit";
+import { WebLinksAddon } from "@xterm/addon-web-links";
+import { SearchAddon } from "@xterm/addon-search";
+import "@xterm/xterm/css/xterm.css";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,7 +57,7 @@ const TerminalComponent = forwardRef<TerminalRef , TerminalProps>(({
       foreground: "#FAFAFA",
       cursor: "#FAFAFA",
       cursorAccent: "#09090B",
-      selection: "#27272A",
+      selectionBackground: "#27272A",
       black: "#18181B",
       red: "#EF4444",
       green: "#22C55E",
@@ -81,7 +80,7 @@ const TerminalComponent = forwardRef<TerminalRef , TerminalProps>(({
       foreground: "#18181B",
       cursor: "#18181B",
       cursorAccent: "#FFFFFF",
-      selection: "#E4E4E7",
+      selectionBackground: "#E4E4E7",
       black: "#18181B",
       red: "#DC2626",
       green: "#16A34A",

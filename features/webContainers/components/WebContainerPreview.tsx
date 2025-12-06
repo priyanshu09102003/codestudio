@@ -7,6 +7,7 @@ import { CheckCircle, Loader2, XCircle } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import TerminalComponent from './Terminal';
 import { TemplateFolder } from '@/features/playground/types';
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 
 
 interface webContainerPreviewProps{
@@ -358,26 +359,26 @@ const WebContainerPreview = ({
 
                 ) : (
 
-                    <div className='h-full flex flex-col'>
-                        
-                        <div className='flex-1'>
-
-                            <iframe src={previewUrl} className='w-full h-full border-none' title='WebContainer Preview'/>
-
-
-                        </div>
-
-                        <div className='h-64 border-t'>
-
-                            <TerminalComponent 
-                            ref={terminalRef}
-                            webContainerInstance={instance}
-                            theme='dark'
-                            className='h-full'
+                    <ResizablePanelGroup direction='vertical' className='h-full'>
+                        <ResizablePanel defaultSize={70} minSize={30}>
+                            <iframe 
+                                src={previewUrl} 
+                                className='w-full h-full border-none' 
+                                title='WebContainer Preview'
                             />
-
-                        </div>
-                    </div>
+                        </ResizablePanel>
+                        
+                        <ResizableHandle />
+                        
+                        <ResizablePanel defaultSize={30} minSize={20}>
+                            <TerminalComponent 
+                                ref={terminalRef}
+                                webContainerInstance={instance}
+                                theme='dark'
+                                className='h-full'
+                            />
+                        </ResizablePanel>
+                    </ResizablePanelGroup>
 
                 )
             }

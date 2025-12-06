@@ -3,6 +3,33 @@ import {WebContainer} from "@webcontainer/api"
 import { TemplateFolder } from "@/features/playground/lib/path-to-json";
 
 
+let globalWebContainerInstance: WebContainer | null = null;
+let bootPromise: Promise<WebContainer> | null = null;
+
+async function getWebContainerInstance(): Promise<WebContainer> {
+    // If already booted, return it
+    if (globalWebContainerInstance) {
+        return globalWebContainerInstance;
+    }
+    
+    // If currently booting, wait for it
+    if (bootPromise) {
+        return bootPromise;
+    }
+    
+    // Boot new instance
+    bootPromise = WebContainer.boot();
+    try {
+        globalWebContainerInstance = await bootPromise;
+        return globalWebContainerInstance;
+    } catch (error) {
+        bootPromise = null;
+        throw error;
+    }
+}
+// END OF ADDED LINES
+
+
 interface useWebContainerProps{
     templateData: TemplateFolder;
 }
@@ -28,7 +55,8 @@ export const useWebContainer = ({templateData} : useWebContainerProps):useWebCon
 
         async function initialiseWebContainer(){
             try {
-                const webcontainerInstance = await WebContainer.boot();
+                // CHANGE THIS LINE - use the singleton getter instead of direct boot
+                const webcontainerInstance = await getWebContainerInstance();
                 if(!mounted) return;
 
                 setInstance(webcontainerInstance);
@@ -51,9 +79,10 @@ export const useWebContainer = ({templateData} : useWebContainerProps):useWebCon
         //If not mounted, cleanup function
         return () => {
             mounted = false;
-            if(instance){
-                instance.teardown();
-            }
+            // REMOVE teardown from here - don't destroy the global instance
+            // if(instance){
+            //     instance.teardown();
+            // }
 
         }
     }, [])
@@ -87,6 +116,9 @@ export const useWebContainer = ({templateData} : useWebContainerProps):useWebCon
             instance.teardown()
             setInstance(null)
             setServerUrl(null)
+            // Also clear global instance
+            globalWebContainerInstance = null;
+            bootPromise = null;
         }
     }, [instance])
 
