@@ -308,69 +308,46 @@ const WebContainerPreview = ({
             {
                 !previewUrl ? (
 
-                    <div className='h-full flex flex-col'>
+                        <ResizablePanelGroup direction='vertical' className='h-full'>
+                        <ResizablePanel defaultSize={60} minSize={30}>
+                            <div className='h-full overflow-y-auto flex items-center justify-center'>
+                                <div className='max-w-md p-6 m-5 rounded-lg bg-white dark:bg-zinc-800'>
 
-                        <div className='h-full max-w-md p-6 m-5 rounded-lg bg-white dark:bg-zinc-800 mx-auto'>
+                                    <h3 className='text-lg font-medium mb-4'>
+                                        Setting up your Environment
+                                    </h3>
 
-                            <h3 className='text-lg font-medium mb-4'>
-                                Setting up your Environment
-                            </h3>
+                                    <Progress value={(currentStep / totalSteps) * 100} className='h-2 mb-6' />
 
-                            <Progress value={(currentStep / totalSteps) * 100} className='h-2 mb-6' />
+                                    <div className='space-y-4 mb-6'>
+                                        <div className='flex items-center gap-3'> 
+                                            {getStepIcon(1)}
+                                            {getStepText(1, "Transforming template data")}
+                                        </div>
 
-                            <div className='space-y-4 mb-6'>
-                                <div className='flex items-center gap-3'> 
-                                    {getStepIcon(1)}
-                                    {getStepText(1, "Transforming template data")}
+                                        <div className="flex items-center gap-3">
+                                            {getStepIcon(2)}
+                                            {getStepText(2, "Mounting files")}
+                                        </div>
+
+                                        <div className="flex items-center gap-3">
+                                            {getStepIcon(3)}
+                                            {getStepText(3, "Installing dependencies")}
+                                        </div>
+
+                                        <div className="flex items-center gap-3">
+                                            {getStepIcon(4)}
+                                            {getStepText(4, "Starting development server")}
+                                        </div>
+                                    </div>
 
                                 </div>
-
-                                <div className="flex items-center gap-3">
-                                    {getStepIcon(2)}
-                                    {getStepText(2, "Mounting files")}
-                                </div>
-
-                                <div className="flex items-center gap-3">
-                                    {getStepIcon(3)}
-                                    {getStepText(3, "Installing dependencies")}
-                                </div>
-
-                                <div className="flex items-center gap-3">
-                                    {getStepIcon(4)}
-                                    {getStepText(4, "Starting development server")}
-                                </div>
-
                             </div>
-
-                        </div>
-
-                        <div className='flex-1 p-4'>
-
-                            <TerminalComponent 
-                            ref={terminalRef}
-                            webContainerInstance={instance}
-                            theme='dark'
-                            className='h-full'
-                            />
-
-                        </div>
-
-                    </div>
-
-                ) : (
-
-                    <ResizablePanelGroup direction='vertical' className='h-full'>
-                        <ResizablePanel defaultSize={70} minSize={30}>
-                            <iframe 
-                                src={previewUrl} 
-                                className='w-full h-full border-none' 
-                                title='WebContainer Preview'
-                            />
                         </ResizablePanel>
                         
                         <ResizableHandle />
                         
-                        <ResizablePanel defaultSize={30} minSize={20}>
+                        <ResizablePanel defaultSize={40} minSize={20}>
                             <TerminalComponent 
                                 ref={terminalRef}
                                 webContainerInstance={instance}
@@ -380,8 +357,30 @@ const WebContainerPreview = ({
                         </ResizablePanel>
                     </ResizablePanelGroup>
 
-                )
-            }
+                ) : (
+
+                       <ResizablePanelGroup direction='vertical' className='h-full'>
+                            <ResizablePanel defaultSize={70} minSize={30}>
+                                <iframe 
+                                    src={previewUrl} 
+                                    className='w-full h-full border-none' 
+                                    title='WebContainer Preview'
+                                />
+                            </ResizablePanel>
+                            
+                            <ResizableHandle />
+                            
+                            <ResizablePanel defaultSize={30} minSize={20}>
+                                <TerminalComponent 
+                                    ref={terminalRef}
+                                    webContainerInstance={instance}
+                                    theme='dark'
+                                    className='h-full'
+                                />
+                            </ResizablePanel>
+                        </ResizablePanelGroup>
+
+                )}
 
         </div>
   )

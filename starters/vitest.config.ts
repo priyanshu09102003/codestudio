@@ -1,16 +1,15 @@
-import { playwright } from '@vitest/browser-playwright';
 import { defineConfig } from 'vitest/config';
-import { vitestWebContainers } from '@webcontainer/test/plugin';
+import { vitestWebcontainers } from '@webcontainer/test/plugin';
 
 export default defineConfig({
-  plugins: [vitestWebContainers()],
+  plugins: [vitestWebcontainers()],
 
   test: {
     reporters: 'verbose',
 
     browser: {
       enabled: true,
-      provider: playwright(),
+      provider: 'playwright',
       instances: [
         {
           browser: 'chromium',
