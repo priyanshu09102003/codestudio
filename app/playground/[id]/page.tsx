@@ -36,6 +36,7 @@ import LoadingStep from '@/components/ui/loader';
 import { LayoutRouter } from 'next/dist/server/app-render/entry-base';
 import { findFilePath } from '@/features/playground/lib';
 import { TemplateFolder } from '@/features/playground/types';
+import ToggleAI from '@/features/playground/components/ToggleAI';
 
 
 const PlaygroundPage = () => {
@@ -414,24 +415,11 @@ const PlaygroundPage = () => {
 
                       
 
-                      <Tooltip>
-                            
-                            <TooltipTrigger asChild>
-
-                              <Button size={"sm"} variant={"outline"} onClick={() => {}} disabled={!hasUnsavedChanges}>
-                                <Brain className='h-4 w-4' /> ASK AI
-                              </Button>
-
-                            </TooltipTrigger>
-
-
-                            <TooltipContent>
-                              ASK AI
-                            </TooltipContent>
-
-
-                      </Tooltip>
-
+                      <ToggleAI
+                        isEnabled = {true}
+                        onToggle = {() => {}}
+                        suggestionLoading = { false }
+                      />
 
                       <DropdownMenu>
                           <DropdownMenuTrigger asChild>
