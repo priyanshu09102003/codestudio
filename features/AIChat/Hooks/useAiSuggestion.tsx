@@ -11,7 +11,7 @@ interface AISuggestionsState{
 
 interface useAISuggestonsReturn extends AISuggestionsState{
     toggleEnabled: () => void;
-    fetchSuggestion: (type: string, editor:any)=>Promise<void>;
+    fetchSuggestion: (type: string, editor:any, fileName?: string)=>Promise<void>;
     acceptSuggestion: (editor: any, monaco: any) => void;
     rejectSuggestion: (editor: any) => void;
     clearSuggestion: (editor: any) => void;
@@ -25,54 +25,45 @@ export const useAISuggestions = ():useAISuggestonsReturn=>{
         isLoading: false,
         position:null,
         decoration: [],
-        isEnabled: true
+        isEnabled: false
     });
 
     const toggleEnabled = useCallback(() => {
         setState((prev)=>({...prev, isEnabled: !prev.isEnabled}))
     }, []);
 
-    const fetchSuggestion = useCallback(async(type: string, editor:any)=>{
+    const fetchSuggestion = useCallback(async(type: string, editor:any, fileName?: string)=>{
+        // Check if AI Suggestion is Enabled or not
+        if(!state.isEnabled){
+            console.warn("AI Assistance is Disabled")
+            return;
+        }
 
-        //Step1: Check if AI Suggestion is Enabled or not
+        if(!editor){
+            console.warn("Editor instance is not available");
+            return;
+        }
 
-        setState((currenState)=> {
-            if(!currenState.isEnabled){
-                console.warn("AI Assistance is Disabled")
-                return currenState;
-            }
+        // Get the cursor position and suggestion
+        const model = editor.getModel();
+        const cursorPosition = editor.getPosition();
 
-            if(!editor){
-                console.warn("Editor instance is not available");
-                return currenState;
-            }
+        if(!model || !cursorPosition){
+            console.warn("Editor Model or Cursor Position is not available");
+            return;
+        }
 
-            //Step2: Get the cursor position and suggestioning
-            const model = editor.getModel();
-            const cursorPosition = editor.getPosition();
+        // Set the loading state
+        setState(prev => ({...prev, isLoading: true}));
 
-            if(!model || !cursorPosition){
-                console.warn("Editor Model or Cursor Position is not available");
-                return currenState;
-            }
-
-
-            //Set the loading state
-
-
-            //@ts-ignore
-            const newState = {...currenState, isLoading: true}
-
-
-            //Perform the async operation for POST Request
-
-            (async () => {
-            try {
+        // Perform the async operation for POST Request
+        try {
             const payload = {
                 fileContent: model.getValue(),
                 cursorLine: cursorPosition.lineNumber - 1,
                 cursorColumn: cursorPosition.column - 1,
                 suggestionType: type,
+                fileName: fileName || 'file.js', // Pass filename for better language detection
             };
             console.log("Request payload:", payload);
 
@@ -92,95 +83,88 @@ export const useAISuggestions = ():useAISuggestonsReturn=>{
             if (data.suggestion) {
                 const suggestionText = data.suggestion.trim();
                 setState((prev) => ({
-                ...prev,
-                suggestion: suggestionText,
-                position: {
-                    line: cursorPosition.lineNumber,
-                    column: cursorPosition.column,
-                },
-                isLoading: false,
+                    ...prev,
+                    suggestion: suggestionText,
+                    position: {
+                        line: cursorPosition.lineNumber,
+                        column: cursorPosition.column,
+                    },
+                    isLoading: false,
                 }));
             } else {
                 console.warn("No suggestion received from API.");
                 setState((prev) => ({ ...prev, isLoading: false }));
             }
-            } catch (error) {
+        } catch (error) {
             console.error("Error fetching code suggestion:", error);
             setState((prev) => ({ ...prev, isLoading: false }));
-            }
-        })();
-
-            return newState;
-        })
-    }, [])
-
-    const acceptSuggestion = useCallback(()=>{
-        (editor: any, monaco:any)=>{
-            setState((currentState)=>{
-                if(!currentState.suggestion || !currentState.position || !editor || !monaco){
-                    return currentState;
-                }
-
-                const {line, column} = currentState.position;
-                const sanitizedSuggestion = currentState.suggestion.replace(/^\d+:\s*/gm, "")
-
-                editor.executeEdits("", [
-                {
-                    range: new monaco.Range(line, column, line, column),
-                    text: sanitizedSuggestion,
-                    forceMoveMarkers: true,
-                },
-                ]);
-
-                  if (editor && currentState.decoration.length > 0) {
-                    editor.deltaDecorations(currentState.decoration, []);
-                    }
-
-                return{
-                    ...currentState,
-                    suggestion: null,
-                    position: null,
-                    decoration: []
-                }
-            })
         }
+    }, [state.isEnabled])
+
+    const acceptSuggestion = useCallback((editor: any, monaco:any)=>{
+        setState((currentState)=>{
+            if(!currentState.suggestion || !currentState.position || !editor || !monaco){
+                return currentState;
+            }
+
+            const {line, column} = currentState.position;
+            const sanitizedSuggestion = currentState.suggestion.replace(/^\d+:\s*/gm, "")
+
+            editor.executeEdits("", [
+            {
+                range: new monaco.Range(line, column, line, column),
+                text: sanitizedSuggestion,
+                forceMoveMarkers: true,
+            },
+            ]);
+
+            if (editor && currentState.decoration.length > 0) {
+                editor.deltaDecorations(currentState.decoration, []);
+            }
+
+            return{
+                ...currentState,
+                suggestion: null,
+                position: null,
+                decoration: []
+            }
+        })
     },[])
 
     const rejectSuggestion = useCallback((editor: any) => {
         setState((currentState) => {
-        if (editor && currentState.decoration.length > 0) {
-            editor.deltaDecorations(currentState.decoration, []);
-        }
-        return {
-            ...currentState,
-            suggestion: null,
-            position: null,
-            decoration: [],
-        };
+            if (editor && currentState.decoration.length > 0) {
+                editor.deltaDecorations(currentState.decoration, []);
+            }
+            return {
+                ...currentState,
+                suggestion: null,
+                position: null,
+                decoration: [],
+            };
         });
     }, []);
 
     const clearSuggestion = useCallback((editor: any) => {
-    setState((currentState) => {
-      if (editor && currentState.decoration.length > 0) {
-        editor.deltaDecorations(currentState.decoration, []);
-      }
-      return {
-        ...currentState,
-        suggestion: null,
-        position: null,
-        decoration: [],
-      };
-    });
-  }, []);
+        setState((currentState) => {
+            if (editor && currentState.decoration.length > 0) {
+                editor.deltaDecorations(currentState.decoration, []);
+            }
+            return {
+                ...currentState,
+                suggestion: null,
+                position: null,
+                decoration: [],
+            };
+        });
+    }, []);
 
-  return {
-     ...state,
+    return {
+        ...state,
         toggleEnabled,
         fetchSuggestion,
         acceptSuggestion,
         rejectSuggestion,
         clearSuggestion,
-  }
+    }
 }
-

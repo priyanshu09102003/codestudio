@@ -40,6 +40,8 @@ import ToggleAI from '@/features/playground/components/ToggleAI';
 import { useAISuggestions } from '@/features/AIChat/Hooks/useAiSuggestion';
 
 
+
+
 const PlaygroundPage = () => {
     const {id} = useParams<{id: string}>();
     const [isPreviewVisible, setIsPreviewVisible] = useState(true)
@@ -166,6 +168,15 @@ const PlaygroundPage = () => {
     const handleFileSelect = (file:TemplateFile)=>{
       openFile(file)
     }
+
+
+    const handleContentChange = useCallback((value: string) => {
+      if (activeFileId) {
+        setTimeout(() => {
+          updateFileContent(activeFileId, value)
+        }, 0)
+      }
+    }, [activeFileId, updateFileContent])
 
 
 
@@ -540,14 +551,15 @@ const PlaygroundPage = () => {
                         <PlaygroundEditor 
                           activeFile={activeFile}
                           content={activeFile?.content || ""}
-                          onContentChange={(value)=> activeFileId && updateFileContent(activeFileId, value)}
+                          onContentChange={handleContentChange}
 
                           suggestion = {aiSuggestion.suggestion}
                           suggestionLoading = {aiSuggestion.isLoading}
                           suggestionPosition = {aiSuggestion.position}
                           onAcceptSuggestion = {(editor, monaco) => aiSuggestion.acceptSuggestion(editor, monaco)}
                           onRejectSuggestion = {(editor) => aiSuggestion.rejectSuggestion(editor)}
-                          onTriggerSuggestion = {(type, editor) => aiSuggestion.fetchSuggestion(type, editor)}
+                          onTriggerSuggestion = {(type, editor, fileName) => aiSuggestion.fetchSuggestion(type, editor, fileName)}
+                          isAIEnabled={aiSuggestion.isEnabled}
                         />
                       </ResizablePanel>
 
