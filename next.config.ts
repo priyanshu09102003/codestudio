@@ -17,7 +17,6 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        // Apply to all routes
         source: '/:path*',
         headers: [
           {
@@ -28,10 +27,14 @@ const nextConfig: NextConfig = {
             key: 'Cross-Origin-Embedder-Policy',
             value: 'require-corp',
           },
+          {
+            key: 'Cross-Origin-Resource-Policy',
+            value: 'cross-origin',
+          },
         ],
       },
       {
-        // CRITICAL FIX: Monaco Editor workers from _next/static
+        // Monaco Editor static files
         source: '/_next/static/:path*',
         headers: [
           {
@@ -45,13 +48,9 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // For API routes serving template data
+        // API routes
         source: '/api/:path*',
         headers: [
-          {
-            key: 'Access-Control-Allow-Origin',
-            value: '*',
-          },
           {
             key: 'Cross-Origin-Resource-Policy',
             value: 'cross-origin',
