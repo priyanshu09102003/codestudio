@@ -170,13 +170,39 @@ const PlaygroundPage = () => {
     }
 
 
-    const handleContentChange = useCallback((value: string) => {
-      if (activeFileId) {
-        setTimeout(() => {
-          updateFileContent(activeFileId, value)
-        }, 0)
-      }
-    }, [activeFileId, updateFileContent])
+   const handleContentChange = useCallback((value: string) => {
+  if (activeFileId) {
+    updateFileContent(activeFileId, value)
+  }
+}, [activeFileId, updateFileContent])
+
+    const handleInsertCodeFromChat = useCallback((
+    code: string, 
+    fileName?: string, 
+    position?: { line: number; column: number }
+  ) => {
+    if (!activeFileId) {
+      toast.error("No active file to insert code into");
+      return;
+    }
+
+    // Get current content
+    const currentFile = openFiles.find(f => f.id === activeFileId);
+    if (!currentFile) return;
+
+    // Insert code at cursor position or append to end
+    const lines = currentFile.content.split('\n');
+    const insertLine = position?.line || lines.length;
+    
+    // Insert the code
+    lines.splice(insertLine, 0, code);
+    const newContent = lines.join('\n');
+    
+    // Update file content
+    updateFileContent(activeFileId, newContent);
+    
+    toast.success("Code inserted successfully!");
+  }, [activeFileId, openFiles, updateFileContent]);
 
 
 
@@ -321,6 +347,8 @@ const PlaygroundPage = () => {
       )
     }
 
+    
+
     if(isLoading){
           return (
       <div className="flex flex-col items-center justify-center h-[calc(100vh-4rem)] p-4">
@@ -345,6 +373,10 @@ const PlaygroundPage = () => {
       </div>
     );
     }
+
+
+  
+ 
 
   return (
     <TooltipProvider>
@@ -435,6 +467,12 @@ const PlaygroundPage = () => {
                         isEnabled = {aiSuggestion.isEnabled}
                         onToggle = {aiSuggestion.toggleEnabled}
                         suggestionLoading = {aiSuggestion.isLoading}
+                        activeFile={activeFile ? {
+                        name: `${activeFile.filename}.${activeFile.fileExtension}`,
+                        content: activeFile.content,
+                        language: activeFile.fileExtension
+                      } : undefined}
+                      onInsertCode={handleInsertCodeFromChat}
                       />
 
                       <DropdownMenu>

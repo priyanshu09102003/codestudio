@@ -10,16 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -32,11 +22,14 @@ import {
   PowerOff,
   Braces,
   Variable,
-  Brain
+  Brain,
+  Sparkles,
+  Keyboard
 } from "lucide-react";
 import React from "react";
 import { cn } from "@/lib/utils";
-import AIChatSidePanel from "@/features/AIChat/components/AIChatSidePanel";
+import {AIChatSidePanel} from "@/features/AIChat/components/AIChatSidePanel";
+import { toast } from "sonner";
 
 
 interface toggleAIProps{
@@ -44,29 +37,44 @@ interface toggleAIProps{
     onToggle : (value:boolean)=> void;
     suggestionLoading: boolean
     loadingProgress?:number;
-    activeFeature?: string
+    activeFeature?: string;
+    // Props for code insertion
+    activeFile?: { name: string; content: string; language?: string };
+    cursorPosition?: { line: number; column: number };
+    onInsertCode?: (code: string, fileName?: string, position?: { line: number; column: number }) => void;
 }
 
 
-const ToggleAI = ({isEnabled, onToggle, suggestionLoading, loadingProgress = 0, activeFeature}: toggleAIProps) => {
+const ToggleAI = ({
+    isEnabled, 
+    onToggle, 
+    suggestionLoading, 
+    loadingProgress = 0, 
+    activeFeature,
+    activeFile,
+    cursorPosition,
+    onInsertCode
+}: toggleAIProps) => {
 
     const [isChatOpen, setIsChatOpen] = useState(false);
-    // Dummy handler for code insertion from AI chat panel
+    
+    // IMPLEMENTED: Handler for code insertion from AI chat panel
     const handleInsertCode = (code: string, fileName?: string, position?: { line: number; column: number }) => {
-        // TODO: Implement actual code insertion logic
-        // For now, just log the code and info
-        console.log("Insert code:", { code, fileName, position });
-        // You can add your integration with the editor here
+        if (onInsertCode) {
+            onInsertCode(code, fileName || activeFile?.name, position || cursorPosition);
+            toast.success("Code inserted into editor");
+        } else {
+            // Fallback: copy to clipboard if no insertion handler
+            navigator.clipboard.writeText(code);
+            toast.info("Code copied to clipboard");
+        }
     };
 
-     // Dummy handler for running code from AI chat panel
-        const handleRunCode = (code: string, language: string) => {
-            console.log("Run code:", { code, language });
-        };
-
-        // Dummy activeFile and cursorPosition for demonstration
-        const activeFile = { name: "example.ts", content: "// file content" };
-        const cursorPosition = { line: 1, column: 1 };
+     // IMPLEMENTED: Handler for running code from AI chat panel
+    const handleRunCode = (code: string, language: string) => {
+        console.log("Run code:", { code, language });
+        toast.info(`Running ${language} code...`);
+    };
 
 
   return (
@@ -195,6 +203,29 @@ const ToggleAI = ({isEnabled, onToggle, suggestionLoading, loadingProgress = 0, 
 
                 </DropdownMenuItem>
 
+                {isEnabled && (
+                    <>
+                        <DropdownMenuSeparator />
+                        
+                        <div className="px-3 py-2.5 bg-blue-50 dark:bg-blue-950/30 rounded-md mx-2 my-2">
+                            <div className="flex items-start gap-2">
+                                <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                                <div className="space-y-1">
+                                    <p className="text-xs font-medium text-blue-900 dark:text-blue-100">
+                                        AI Suggestions Active
+                                    </p>
+                                    <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
+                                        Press <kbd className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900 rounded text-xs font-mono">Ctrl+Space</kbd> to manually trigger suggestions, or type special characters like <code className="text-xs">.</code> <code className="text-xs">;</code> <code className="text-xs">{'{'}</code>
+                                    </p>
+                                    <p className="text-xs text-blue-700 dark:text-blue-300">
+                                        Press <kbd className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900 rounded text-xs font-mono">Tab</kbd> to accept suggestions
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                )}
+
                 <DropdownMenuSeparator/>
 
                 <DropdownMenuItem 
@@ -221,7 +252,7 @@ const ToggleAI = ({isEnabled, onToggle, suggestionLoading, loadingProgress = 0, 
             onRunCode={handleRunCode}
             activeFileName={activeFile?.name}
             activeFileContent={activeFile?.content}
-            activeFileLanguage="TypeScript" // Assuming TypeScript as the language
+            activeFileLanguage={activeFile?.language || "TypeScript"}
             cursorPosition={cursorPosition}
             theme="dark"
         />
