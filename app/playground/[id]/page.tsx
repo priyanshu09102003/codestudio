@@ -206,75 +206,56 @@ const PlaygroundPage = () => {
 
 
 
+const refreshPreview = useCallback(() => {
+  const iframe = document.querySelector('iframe');
+  if (iframe && iframe.src) {
+    console.log("🔄 Refreshing preview iframe...");
+    iframe.src = iframe.src;
+  }
+}, []);
+
 const handleSave = useCallback(
   async(fileId?:string)=>{
     const targetFileId = fileId || activeFileId;
-
     if(!targetFileId) return;
     const fileToSave = openFiles.find((f) => f.id === targetFileId)
-
     if(!fileToSave) return;
-
     const latestTemplateData = useFileExplorer.getState().templateData;
-
     if(!latestTemplateData) return;
 
     try {
       const filePath = findFilePath(fileToSave, latestTemplateData);
-      
       if(!filePath){
-        toast.error(
-          `Could not find path for file: ${fileToSave.filename}.${fileToSave.fileExtension}`
-        )
+        toast.error(`Could not find path for file: ${fileToSave.filename}.${fileToSave.fileExtension}`)
         return;
       }
 
       console.log("💾 Saving file:", filePath);
-      console.log("📝 Content length:", fileToSave.content.length);
 
-      // STEP 1: Write to WebContainer file system (this is what makes the preview update)
       if (instance && instance.fs) {
-        console.log("💾 Writing to WebContainer:", filePath);
-        
         try {
-          // Ensure parent directory exists
           const pathParts = filePath.split('/');
           if (pathParts.length > 1) {
             const dirPath = pathParts.slice(0, -1).join('/');
             await instance.fs.mkdir(dirPath, { recursive: true });
-            console.log("📁 Directory ensured:", dirPath);
           }
           
-          // Write the file
           await instance.fs.writeFile(filePath, fileToSave.content, 'utf-8');
           console.log("✅ File written to WebContainer");
           
-          // Verify write
-          try {
-            const readBack = await instance.fs.readFile(filePath, 'utf-8');
-            console.log("✅ Verified read back, length:", readBack.length);
-            console.log("✅ Content matches:", readBack === fileToSave.content);
-          } catch (readError) {
-            console.warn("⚠️ Could not verify file:", readError);
-          }
-          
           lastSyncedContent.current.set(fileToSave.id, fileToSave.content);
+          
+          // Force iframe refresh after save
+          setTimeout(refreshPreview, 500);
+          
         } catch (wcError) {
           console.error("❌ WebContainer write error:", wcError);
           toast.error("Failed to update preview");
           throw wcError;
         }
-      } else {
-        console.warn("⚠️ WebContainer instance not ready");
-        console.log("Instance exists:", !!instance);
-        console.log("Instance.fs exists:", !!(instance && instance.fs));
       }
 
-      // STEP 2: Update template data structure
-      const updatedTemplateData = JSON.parse(
-        JSON.stringify(latestTemplateData)
-      );
-
+      const updatedTemplateData = JSON.parse(JSON.stringify(latestTemplateData));
       const updateFileContent = (items: any[]) =>
         items.map((item) => {
           if ("folderName" in item) {
@@ -288,17 +269,11 @@ const handleSave = useCallback(
           return item;
         });
       
-      updatedTemplateData.items = updateFileContent(
-        updatedTemplateData.items
-      );
+      updatedTemplateData.items = updateFileContent(updatedTemplateData.items);
 
-      // STEP 3: Save to database
-      console.log("💾 Saving to database...");
       const newTemplateData = await saveTemplateData(updatedTemplateData);
       setTemplateData(newTemplateData || updatedTemplateData);
-      console.log("✅ Saved to database");
 
-      // STEP 4: Update UI state
       const updatedOpenFiles = openFiles.map((f) =>
         f.id === targetFileId
           ? {
@@ -311,24 +286,13 @@ const handleSave = useCallback(
       );
       setOpenFiles(updatedOpenFiles);
 
-      toast.success(
-        `Saved ${fileToSave.filename}.${fileToSave.fileExtension}`
-      );
+      toast.success(`Saved ${fileToSave.filename}.${fileToSave.fileExtension}`);
 
     } catch (error) {
       console.error("❌ Error saving file:", error);
-      toast.error(
-        `Failed to save ${fileToSave.filename}.${fileToSave.fileExtension}`
-      );
+      toast.error(`Failed to save ${fileToSave.filename}.${fileToSave.fileExtension}`);
     }
-},[
-  activeFileId,
-  openFiles,
-  instance,
-  saveTemplateData,
-  setTemplateData,
-  setOpenFiles,
-])
+},[activeFileId, openFiles, instance, saveTemplateData, setTemplateData, setOpenFiles, refreshPreview])
   
     const handleSaveAll = async() => {
     const unsavedFiles = openFiles.filter((f) => f.hasUnsavedChanges);
