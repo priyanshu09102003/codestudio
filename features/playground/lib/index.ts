@@ -100,8 +100,13 @@ export const generateFileId = (
   rootFolder: TemplateFolder,
   contextPath?: string
 ): string => {
-  // Try to find the file with context path first
-  const path = findFilePath(file, rootFolder, [], contextPath);
+  // If contextPath is provided, use it directly as the ID
+  if (contextPath) {
+    return contextPath;
+  }
+  
+  // Otherwise, search for the file
+  const path = findFilePath(file, rootFolder);
   
   if (path) {
     return path;
