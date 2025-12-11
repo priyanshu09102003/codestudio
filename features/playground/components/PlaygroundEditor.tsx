@@ -498,11 +498,11 @@ const PlaygroundEditor = ({
 
             <Editor 
                 height={"100%"}
-                defaultValue={content}
+                value={content}  
+                key={activeFile?.filename + activeFile?.fileExtension}  
                 onChange={(value) => onContentChange(value || "")}
                 onMount={handleEditorDidMount}
                 language={activeFile ? getEditorLanguage(activeFile.fileExtension || "") : "plaintext"}
-                //@ts-ignore
                 options={defaultEditorOptions}
             />
         </div>
