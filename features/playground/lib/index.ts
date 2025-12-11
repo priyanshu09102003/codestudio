@@ -26,15 +26,17 @@ export function findFilePath(
 }
 
 export const generateFileId = (file: TemplateFile, rootFolder: TemplateFolder): string => {
-  // Find the file's path in the folder structure
-  const path = findFilePath(file, rootFolder)?.replace(/^\/+/, '') || '';
+  // Find the file's FULL path (already includes filename)
+  const path = findFilePath(file, rootFolder);
   
-  // Handle empty/undefined file extension
-  const extension = file.fileExtension?.trim();
-  const extensionSuffix = extension ? `.${extension}` : '';
-
-  // Combine path and filename
-  return path
-    ? `${path}/${file.filename}${extensionSuffix}`
-    : `${file.filename}${extensionSuffix}`;
+  if (!path) {
+    // Fallback: generate unique ID with timestamp
+    const extension = file.fileExtension?.trim();
+    const extensionSuffix = extension ? `.${extension}` : '';
+    return `${file.filename}${extensionSuffix}-${Date.now()}`;
+  }
+  
+  // Return the path as-is (it already includes filename.extension)
+  // Example: "app/page.tsx" or "app/SignUp/page.tsx"
+  return path;
 }
