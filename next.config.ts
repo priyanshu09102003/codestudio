@@ -34,7 +34,6 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // Monaco Editor static files
         source: '/_next/static/:path*',
         headers: [
           {
@@ -48,7 +47,6 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // API routes
         source: '/api/:path*',
         headers: [
           {
