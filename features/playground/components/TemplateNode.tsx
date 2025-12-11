@@ -146,10 +146,13 @@ const TemplateNode = ({
                       className="flex-1" 
                       isActive={isSelected} 
                       onClick={() => {
-                          const fullPath = path ? `${path}/${fileName}` : fileName;
-                          const fileWithContext = { ...file, _contextPath: fullPath };
-                          onFileSelect?.(fileWithContext as TemplateFile);
-                      }}
+                        const fullPath = path ? `${path}/${fileName}` : fileName;
+                        console.log("🔍 Clicking file:", fileName);
+                        console.log("📁 Path:", path);
+                        console.log("🎯 Full path:", fullPath);
+                        const fileWithContext = { ...file, _contextPath: fullPath };
+                        onFileSelect?.(fileWithContext as TemplateFile);
+                    }}
                   >
                       <File className="h-4 w-4 mr-2 shrink-0" />
                       <span>{fileName}</span>
