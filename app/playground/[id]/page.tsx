@@ -206,98 +206,111 @@ const PlaygroundPage = () => {
 
 
 
-    const handleSave = useCallback(
-      async(fileId?:string)=>{
-        const targetFileId = fileId || activeFileId;
+const handleSave = useCallback(
+  async(fileId?:string)=>{
+    const targetFileId = fileId || activeFileId;
 
-        if(!targetFileId) return;
-        const fileToSave = openFiles.find((f) => f.id === targetFileId)
+    if(!targetFileId) return;
+    const fileToSave = openFiles.find((f) => f.id === targetFileId)
 
-        if(!fileToSave) return;
+    if(!fileToSave) return;
 
-        const latestTemplateData = useFileExplorer.getState().templateData;
+    const latestTemplateData = useFileExplorer.getState().templateData;
 
-        if(!latestTemplateData) return;
+    if(!latestTemplateData) return;
 
+    try {
+      const filePath = findFilePath(fileToSave, latestTemplateData);
+      if(!filePath){
+        toast.error(
+          `Could not find path for file: ${fileToSave.filename}.${fileToSave.fileExtension}`
+        )
+        return;
+      }
+
+      // STEP 1: Write to WebContainer file system (this is what makes the preview update)
+      if (instance && instance.fs) {
+        console.log("💾 Saving to WebContainer:", filePath);
+        
         try {
-          const filePath = findFilePath(fileToSave, latestTemplateData);
-          if(!filePath){
-            toast.error(
-              `Could not find path for file: ${fileToSave.filename}.${fileToSave.fileExtension}`
-            )
-
-            return;
-
-
+          // Ensure parent directory exists
+          const pathParts = filePath.split('/');
+          if (pathParts.length > 1) {
+            const dirPath = pathParts.slice(0, -1).join('/');
+            await instance.fs.mkdir(dirPath, { recursive: true });
           }
-
-           const updatedTemplateData = JSON.parse(
-            JSON.stringify(latestTemplateData)
-          );
-
-
-          const updateFileContent = (items: any[]) =>
-            items.map((item) => {
-              if ("folderName" in item) {
-                return { ...item, items: updateFileContent(item.items) };
-              } else if (
-                item.filename === fileToSave.filename &&
-                item.fileExtension === fileToSave.fileExtension
-              ) {
-                return { ...item, content: fileToSave.content };
-              }
-              return item;
-            });
-          updatedTemplateData.items = updateFileContent(
-            updatedTemplateData.items
-          );
-
-
-          if (writeFileSync) {
-          await writeFileSync(filePath, fileToSave.content);
+          
+          // Write the file
+          await instance.fs.writeFile(filePath, fileToSave.content, 'utf-8');
+          console.log("✅ File written to WebContainer");
+          
           lastSyncedContent.current.set(fileToSave.id, fileToSave.content);
-          if (instance && instance.fs) {
-            await instance.fs.writeFile(filePath, fileToSave.content);
+        } catch (wcError) {
+          console.error("WebContainer write error:", wcError);
+          toast.error("Failed to update preview");
+          throw wcError;
+        }
+      }
+
+      // STEP 2: Update template data structure
+      const updatedTemplateData = JSON.parse(
+        JSON.stringify(latestTemplateData)
+      );
+
+      const updateFileContent = (items: any[]) =>
+        items.map((item) => {
+          if ("folderName" in item) {
+            return { ...item, items: updateFileContent(item.items) };
+          } else if (
+            item.filename === fileToSave.filename &&
+            item.fileExtension === fileToSave.fileExtension
+          ) {
+            return { ...item, content: fileToSave.content };
           }
-        }
+          return item;
+        });
+      
+      updatedTemplateData.items = updateFileContent(
+        updatedTemplateData.items
+      );
 
-        const newTemplateData = await saveTemplateData(updatedTemplateData);
-        setTemplateData(newTemplateData || updatedTemplateData);
+      // STEP 3: Save to database
+      const newTemplateData = await saveTemplateData(updatedTemplateData);
+      setTemplateData(newTemplateData || updatedTemplateData);
 
-        const updatedOpenFiles = openFiles.map((f) =>
-          f.id === targetFileId
-            ? {
-                ...f,
-                content: fileToSave.content,
-                originalContent: fileToSave.content,
-                hasUnsavedChanges: false,
-              }
-            : f
-        );
-        setOpenFiles(updatedOpenFiles);
+      // STEP 4: Update UI state
+      const updatedOpenFiles = openFiles.map((f) =>
+        f.id === targetFileId
+          ? {
+              ...f,
+              content: fileToSave.content,
+              originalContent: fileToSave.content,
+              hasUnsavedChanges: false,
+            }
+          : f
+      );
+      setOpenFiles(updatedOpenFiles);
 
-        toast.success(
-          `Saved ${fileToSave.filename}.${fileToSave.fileExtension}`
-        );
+      toast.success(
+        `Saved ${fileToSave.filename}.${fileToSave.fileExtension}`
+      );
 
-
-        } catch (error) {
-          console.error("Error saving file:", error);
-          toast.error(
-            `Failed to save ${fileToSave.filename}.${fileToSave.fileExtension}`
-          );
-          throw error;
-        }
-    },[
-      activeFileId,
-      openFiles,
-      writeFileSync,
-      instance,
-      saveTemplateData,
-      setTemplateData,
-      setOpenFiles,
-    ])
-
+    } catch (error) {
+      console.error("❌ Error saving file:", error);
+      toast.error(
+        `Failed to save ${fileToSave.filename}.${fileToSave.fileExtension}`
+      );
+      throw error;
+    }
+},[
+  activeFileId,
+  openFiles,
+  instance,
+  saveTemplateData,
+  setTemplateData,
+  setOpenFiles,
+])
+  
     const handleSaveAll = async() => {
       const unsavedFiles = openFiles.filter((f) => f.hasUnsavedChanges);
         if (unsavedFiles.length === 0) {
