@@ -2,10 +2,8 @@ import { readTemplateStructureFromJson, saveTemplateStructureToJson } from "@/fe
 import { db } from "@/lib/db";
 import path from "path";
 import fs from "fs/promises"
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { templatePaths } from "@/lib/template";
-
-
 
 // Helper function to ensure valid JSON
 function validateJsonStructure(data: unknown): boolean {
@@ -18,51 +16,71 @@ function validateJsonStructure(data: unknown): boolean {
   }
 }
 
-export async function GET(request:NextRequest, {params}:{params: Promise<{id: string}>}){
+export async function GET(request: NextRequest, {params}: {params: Promise<{id: string}>}) {
     const {id} = await params;
 
     if(!id){
-        return Response.json({error: "Missing Playground ID"}, {status: 400})
+        return NextResponse.json({error: "Missing Playground ID"}, {status: 400})
     }
 
     const playground = await db.playground.findUnique({
-        where:{
-            id
-        }
+        where: { id }
     })
 
     if(!playground){
-        return Response.json({error: "Playground not found"}, {status: 404})
+        return NextResponse.json({error: "Playground not found"}, {status: 404})
     }
-
 
     const templateKey = playground.template as keyof typeof templatePaths
     const templatePath = templatePaths[templateKey]
 
     if(!templatePath){
-        return Response.json({error: "Invalid template"}, {status: 404});
-        
+        return NextResponse.json({error: "Invalid template"}, {status: 404});
     }
 
     try {
         const inputPath = path.join(process.cwd(), templatePath);
-        const outputFile = path.join(process.cwd(), `output/${templateKey}.json`)
+        
+        // Use /tmp for Vercel serverless compatibility
+        const outputDir = path.join('/tmp', 'output');
+        const outputFile = path.join(outputDir, `${templateKey}.json`);
 
-        await saveTemplateStructureToJson(inputPath, outputFile)
+        // Ensure /tmp/output exists
+        await fs.mkdir(outputDir, { recursive: true });
+
+        await saveTemplateStructureToJson(inputPath, outputFile);
         const result = await readTemplateStructureFromJson(outputFile);
 
-        //Validate JSON Structure
-
+        // Validate JSON Structure
         if(!validateJsonStructure(result.items)){
-            return Response.json({error: "Invalid JSON Structure"}, {status: 500})
+            // Clean up before returning error
+            await fs.unlink(outputFile).catch(() => {});
+            return NextResponse.json({error: "Invalid JSON Structure"}, {status: 500})
         }
 
-        await fs.unlink(outputFile)
+        // Clean up temp file
+        await fs.unlink(outputFile).catch(err => {
+            console.warn("Failed to delete temp file:", err);
+        });
 
-        return Response.json({ success: true, templateJson: result }, { status: 200 });
+        return NextResponse.json(
+            { success: true, templateJson: result }, 
+            { 
+                status: 200,
+                headers: {
+                    'Cache-Control': 'public, max-age=3600',
+                }
+            }
+        );
 
     } catch (error) {
         console.error("Error generating template JSON:", error);
-        return Response.json({ error: "Failed to generate template" }, { status: 500 });
+        return NextResponse.json(
+            { 
+                error: "Failed to generate template",
+                details: error instanceof Error ? error.message : 'Unknown error'
+            }, 
+            { status: 500 }
+        );
     }
 }
