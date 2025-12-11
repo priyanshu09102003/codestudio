@@ -84,30 +84,61 @@ export const useFileExplorer = create<FileExplorerState>((set , get) => ({
 
     //Methods
 
-    openFile: (file) => {
-    const fileId = generateFileId(file, get().templateData!);
-    const { openFiles } = get();
-    const existingFile = openFiles.find((f) => f.id === fileId);
+  //   openFile: (file) => {
+  //   const fileId = generateFileId(file, get().templateData!);
+  //   const { openFiles } = get();
+  //   const existingFile = openFiles.find((f) => f.id === fileId);
 
-    if (existingFile) {
-      set({ activeFileId: fileId, editorContent: existingFile.content });
-      return;
-    }
+  //   if (existingFile) {
+  //     set({ activeFileId: fileId, editorContent: existingFile.content });
+  //     return;
+  //   }
 
-    const newOpenFile: OpenFile = {
-      ...file,
-      id: fileId,
-      hasUnsavedChanges: false,
-      content: file.content || "",
-      originalContent: file.content || "",
-    };
+  //   const newOpenFile: OpenFile = {
+  //     ...file,
+  //     id: fileId,
+  //     hasUnsavedChanges: false,
+  //     content: file.content || "",
+  //     originalContent: file.content || "",
+  //   };
 
-    set((state) => ({
-      openFiles: [...state.openFiles, newOpenFile],
-      activeFileId: fileId,
-      editorContent: file.content || "",
-    }));
-  },
+  //   set((state) => ({
+  //     openFiles: [...state.openFiles, newOpenFile],
+  //     activeFileId: fileId,
+  //     editorContent: file.content || "",
+  //   }));
+  // },
+
+      openFile: (file) => {
+      const templateData = get().templateData;
+      if (!templateData) return;
+    
+      // Extract context path if provided
+      const contextPath = (file as any)._contextPath;
+      const fileId = generateFileId(file, templateData, contextPath);
+      
+      const { openFiles } = get();
+      const existingFile = openFiles.find((f) => f.id === fileId);
+    
+      if (existingFile) {
+        set({ activeFileId: fileId, editorContent: existingFile.content });
+        return;
+      }
+    
+      const newOpenFile: OpenFile = {
+        ...file,
+        id: fileId,
+        hasUnsavedChanges: false,
+        content: file.content || "",
+        originalContent: file.content || "",
+      };
+    
+      set((state) => ({
+        openFiles: [...state.openFiles, newOpenFile],
+        activeFileId: fileId,
+        editorContent: file.content || "",
+      }));
+    },
 
     closeFile: (fileId) => {
     const { openFiles, activeFileId } = get();
