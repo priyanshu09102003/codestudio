@@ -1,8 +1,8 @@
 export const templatePaths = {
-    REACT: 'public/starters/gsap-react',
-    NEXTJS: 'public/starters/gsap-next',
+    REACT: 'public/starters/react',
+    NEXTJS: 'public/starters/nextjs-new',
     EXPRESS: 'public/starters/express-simple',
-    VUE: 'public/starters/gsap-vue',
+    VUE: 'public/starters/vue',
     HONO: 'public/starters/hono-nodejs-starter',
     ANGULAR: 'public/starters/angular',
 };
