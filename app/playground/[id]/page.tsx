@@ -312,22 +312,22 @@ const handleSave = useCallback(
 ])
   
     const handleSaveAll = async() => {
-      const unsavedFiles = openFiles.filter((f) => f.hasUnsavedChanges);
-        if (unsavedFiles.length === 0) {
-        toast.info("No unsaved changes");
-        return;
-      }
-
-      try {
-        await Promise.all(unsavedFiles.map((f) => handleSave(f.id)));
-        toast.success(`Saved ${unsavedFiles.length} file(s)`);
-
-      } catch (error) {
-
-        toast.error("Failed to save some files");
-      }
-      
+    const unsavedFiles = openFiles.filter((f) => f.hasUnsavedChanges);
+    if (unsavedFiles.length === 0) {
+      toast.info("No unsaved changes");
+      return;
     }
+  
+    try {
+      // Save files sequentially to ensure proper WebContainer updates
+      for (const file of unsavedFiles) {
+        await handleSave(file.id);
+      }
+      toast.success(`Saved ${unsavedFiles.length} file(s)`);
+    } catch (error) {
+      toast.error("Failed to save some files");
+    }
+  }
 
     React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
