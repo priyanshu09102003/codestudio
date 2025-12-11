@@ -133,14 +133,27 @@ const TemplateNode = ({
         
                 <div className="flex items-center group">
 
-                    <SidebarMenuButton className="flex-1" isActive={isSelected} onClick={() => onFileSelect?.(file)}>
+                    {/* <SidebarMenuButton className="flex-1" isActive={isSelected} onClick={() => onFileSelect?.(file)}>
                         <File className="h-4 w-4 mr-2 shrink-0" />
 
                         <span>
                             {fileName}
                         </span>
 
-                    </SidebarMenuButton>
+                    </SidebarMenuButton> */}
+
+                  <SidebarMenuButton 
+                      className="flex-1" 
+                      isActive={isSelected} 
+                      onClick={() => {
+                          const fullPath = path ? `${path}/${fileName}` : fileName;
+                          const fileWithContext = { ...file, _contextPath: fullPath };
+                          onFileSelect?.(fileWithContext as TemplateFile);
+                      }}
+                  >
+                      <File className="h-4 w-4 mr-2 shrink-0" />
+                      <span>{fileName}</span>
+                  </SidebarMenuButton>
 
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
